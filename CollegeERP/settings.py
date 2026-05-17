@@ -30,6 +30,16 @@ def _database_url_config(url):
         }
     }
 
+
+def _first_database_url():
+    return (
+        os.environ.get('POSTGRES_URL_NON_POOLING')
+        or os.environ.get('POSTGRES_URL')
+        or os.environ.get('SUPABASE_DATABASE_URL')
+        or os.environ.get('SUPABASE_DB_URL')
+        or os.environ.get('DATABASE_URL')
+    )
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -41,7 +51,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'jy8c-n9y=pf##!2^jae-l_5iafq6q%wfq8gdb6c0r5d52su+9y'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
+
+if os.environ.get('VERCEL'):
+    DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -99,11 +112,7 @@ WSGI_APPLICATION = 'CollegeERP.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASE_URL = (
-    os.environ.get('POSTGRES_URL_NON_POOLING')
-    or os.environ.get('POSTGRES_URL')
-    or os.environ.get('DATABASE_URL')
-)
+DATABASE_URL = _first_database_url()
 
 if DATABASE_URL:
     DATABASES = _database_url_config(DATABASE_URL)
@@ -119,6 +128,8 @@ if os.environ.get('VERCEL'):
     SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
 
 
 # Password validation

@@ -1,0 +1,30 @@
+name: Run migrations on push
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  migrate:
+    name: Run Django migrations against Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Run migrations
+        env:
+          # The workflow expects you to store your Supabase DB URL in GitHub Secrets
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          DJANGO_DEBUG: 'false'
+        run: |
+          echo "Using SUPABASE_DATABASE_URL=${SUPABASE_DATABASE_URL:-<not-set>}"
+          python manage.py migrate --noinput
