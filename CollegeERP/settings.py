@@ -24,6 +24,9 @@ def _database_url_config(url):
             'PASSWORD': parsed.password or '',
             'HOST': parsed.hostname or '',
             'PORT': parsed.port or '',
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
         }
     }
 
@@ -96,7 +99,11 @@ WSGI_APPLICATION = 'CollegeERP.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = (
+    os.environ.get('POSTGRES_URL_NON_POOLING')
+    or os.environ.get('POSTGRES_URL')
+    or os.environ.get('DATABASE_URL')
+)
 
 if DATABASE_URL:
     DATABASES = _database_url_config(DATABASE_URL)
